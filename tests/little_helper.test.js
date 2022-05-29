@@ -62,6 +62,16 @@ const blogs = [
   }
 ]
 
+const mostLiked = {
+  author: 'Edsger W. Dijkstra',
+  likes: 17
+}
+
+const mostBlogs = {
+  author: 'Robert C. Martin',
+  blogs: 3
+}
+
 test('dummy returns one', () => {
   const blogs = []
 
@@ -90,5 +100,19 @@ describe('favorite blog', () => {
   test('is most liked blog', () => {
     const result = listHelper.favoriteBlog(blogs)
     expect(result).toEqual(blogs[2])
+  })
+})
+
+describe('author with the most blogs', () => {
+  test('wrote the most blogs', () => {
+    const result = listHelper.mostBlogs(blogs)
+    expect(result).toEqual(mostBlogs)
+  })
+})
+
+describe('author with the most likes', () => {
+  test('is most liked autoher', () => {
+    const result = listHelper.mostLikes(blogs)
+    expect(result).toEqual(mostLiked)
   })
 })
