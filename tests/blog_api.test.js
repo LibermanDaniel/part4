@@ -1,115 +1,176 @@
 const mongoose = require('mongoose')
+const helper = require('../utils/test_helper')
 const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
 const Blog = require('../models/blog')
 
-const listWithOneBlog = [
-  {
-    _id: '5a422aa71b54a676234d17f8',
-    title: 'Go To Statement Considered Harmful',
-    author: 'Edsger W. Dijkstra',
-    url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
-    likes: 5,
-    __v: 0
-  }
-]
-
-const blogs = [
-  {
-    _id: '5a422a851b54a676234d17f7',
-    title: 'React patterns',
-    author: 'Michael Chan',
-    url: 'https://reactpatterns.com/',
-    likes: 7,
-    __v: 0
-  },
-  {
-    _id: '5a422aa71b54a676234d17f8',
-    title: 'Go To Statement Considered Harmful',
-    author: 'Edsger W. Dijkstra',
-    url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
-    likes: 5,
-    __v: 0
-  },
-  {
-    _id: '5a422b3a1b54a676234d17f9',
-    title: 'Canonical string reduction',
-    author: 'Edsger W. Dijkstra',
-    url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
-    likes: 12,
-    __v: 0
-  },
-  {
-    _id: '5a422b891b54a676234d17fa',
-    title: 'First class tests',
-    author: 'Robert C. Martin',
-    url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll',
-    likes: 10,
-    __v: 0
-  },
-  {
-    _id: '5a422ba71b54a676234d17fb',
-    title: 'TDD harms architecture',
-    author: 'Robert C. Martin',
-    url: 'http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html',
-    likes: 0,
-    __v: 0
-  },
-  {
-    _id: '5a422bc61b54a676234d17fc',
-    title: 'Type wars',
-    author: 'Robert C. Martin',
-    url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html',
-    likes: 2,
-    __v: 0
-  }
-]
-
-const mostLiked = {
-  author: 'Edsger W. Dijkstra',
-  likes: 17
-}
-
-const mostBlogs = {
-  author: 'Robert C. Martin',
-  blogs: 3
-}
-
 beforeEach(async () => {
   await Blog.deleteMany({})
-  let blogObject = new Blog(blogs[0])
-  await blogObject.save()
-  blogObject = new Blog(blogs[1])
-  await blogObject.save()
+
+  for (let blog of helper.blogList) {
+    let blogObject = new Blog(blog)
+    await blogObject.save()
+  }
 })
+
 test('blogs are returned as json', async () => {
   await api
     .get('/api/blogs')
     .expect(200)
     .expect('Content-Type', /application\/json/)
-}, 10000)
+})
+
+test('there is atleast one blog', async () => {
+  const res = await api.get('/api/blogs')
+  expect(res.body[0]).toBeDefined()
+})
 
 test('the amount of blogs matches the inital amount of blogs', async () => {
   const res = await api.get('/api/blogs')
-  expect(res.body).toHaveLength(blogs.length)
+  expect(res.body).toHaveLength(helper.blogList.length)
 })
 
-test('there is 1 blog', async () => {
-  const res = await api.get('/api/blogs')
-  expect(res.body[0]).toHaveLength(1)
-})
-
-test('the first blog is about HTTP methods', async () => {
+test('the first blog author is Michael Chan', async () => {
   const res = await api.get('/api/blogs')
 
-  expect(res.body[0].content).toBe('Something')
+  expect(res.body[0].author).toBe('Michael Chan')
 })
 
-test('a specific blog is within the returned notes', async () => {
+test('a specific title is within the returned blogs', async () => {
   const res = await api.get('/api/blogs')
 
-  const contents = res.body.map(r => r.content)
-  expect(contents).toContain('Something')
+  const titles = res.body.map(r => r.title)
+  expect(titles).toContain('First class tests')
 })
 
+test('the blogs have an ID', async () => {
+  const res = await api.get('/api/blogs')
+
+  const ids = res.body.map(r => r.id)
+
+  expect(ids).toBeDefined()
+})
+
+test('a valid blog can be added', async () => {
+
+  await api
+    .post('/api/blogs')
+    .send(helper.oneBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await helper.blogsInDb()
+
+  expect(blogsAtEnd).toHaveLength(helper.blogList.length + 1)
+
+  const titles = blogsAtEnd.map(n => n.title)
+  expect(titles).toContain('Go To Statement Considered Harmful 2')
+})
+
+test('blog without title or url is not added', async () => {
+  const faultyBlog = {
+    author: 'Edsger W. Dijkstra',
+    likes: 5,
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(faultyBlog)
+    .expect(400)
+
+  const faultyBlog2 = {
+    title: 'Go To Statement Considered Harmful 2',
+    author: 'Edsger W. Dijkstra',
+    likes: 5,
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(faultyBlog2)
+    .expect(400)
+
+  const faultyBlog3 = {
+    author: 'Edsger W. Dijkstra',
+    likes: 5,
+    url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html'
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(faultyBlog3)
+    .expect(400)
+
+  const blogsAtEnd = await helper.blogsInDb()
+
+  expect(blogsAtEnd).toHaveLength(helper.blogList.length)
+})
+
+test('a blog without likes will default the likes to 0', async () => {
+  const oneBlog = {
+    title: 'Go To Statement Considered Harmful 2',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(oneBlog)
+    .expect(201)
+
+  let blogsAtEnd = await helper.blogsInDb()
+  expect(blogsAtEnd[blogsAtEnd.length - 1].likes).toBe(0)
+
+  const oneBlog2 = {
+    title: 'Go To Statement Considered Harmful 2',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
+    likes: ''
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(oneBlog2)
+    .expect(201)
+
+  blogsAtEnd = await helper.blogsInDb()
+
+  expect(blogsAtEnd[blogsAtEnd.length - 1].likes).toBe(0)
+})
+
+
+test('a blog can be deleted', async () => {
+  const blogsAtStart = await helper.blogsInDb()
+  const blogToDelete = blogsAtStart[0]
+
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .send()
+    .expect(204)
+
+  const blogsAtEnd = await helper.blogsInDb()
+
+  expect(blogsAtEnd).toHaveLength(helper.blogList.length - 1)
+
+  const titles = blogsAtEnd.map(r => r.title)
+
+  expect(titles).not.toContain(blogToDelete.title)
+})
+
+test('updates a blog successfully', async () => {
+  const blogsInDb = await helper.blogsInDb()
+  const blogToEdit = blogsInDb[0]
+  const edit = { title: 'moi' }
+
+  await api
+    .put(`/api/blogs/${blogToEdit.id}`)
+    .send(edit)
+    .expect(200)
+
+  const updatedBlogsInDb = await helper.blogsInDb()
+  expect(updatedBlogsInDb[0].title).toBe('moi')
+})
+
+afterAll(() => {
+  mongoose.connection.close()
+})
