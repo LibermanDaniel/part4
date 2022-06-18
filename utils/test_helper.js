@@ -1,5 +1,5 @@
 const Blog = require('../models/blog')
-
+const User = require('../models/user')
 const oneBlog = {
   title: 'Go To Statement Considered Harmful 2',
   author: 'Edsger W. Dijkstra',
@@ -61,4 +61,9 @@ const blogsInDb = async () => {
   return blogs.map(blog => blog.toJSON())
 }
 
-module.exports = { oneBlog, blogList, mostLiked, mostBlogs, blogsInDb }
+const usersInDb = async () => {
+  const users = await User.find({})
+  return users.map(user => user.toJSON())
+}
+
+module.exports = { oneBlog, blogList, mostLiked, mostBlogs, blogsInDb, usersInDb }

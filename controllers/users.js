@@ -1,9 +1,21 @@
 const bcrypt = require('bcrypt')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
+require('express-async-errors')
 
-usersRouter.userPost('/', async(req, res) => {
+
+usersRouter.post('/', async (req, res) => {
   const { username, name, password } = req.body
+
+  console.log(username)
+  console.log(name)
+  console.log(password)
+  const existingUser = await User.findOne({ username })
+  if (existingUser) {
+    return res.status(400).json({
+      error: 'username must be unique'
+    })
+  }
 
   const saltRounds = 10
   const passwordHash = await bcrypt.hash(password, saltRounds)
@@ -17,6 +29,12 @@ usersRouter.userPost('/', async(req, res) => {
   const savedUser = await user.save()
 
   res.status(201).json(savedUser)
+})
+
+usersRouter.get('/', async (req, res) => {
+  const users = await User.find({}).populate('blogs')
+  console.log(users)
+  res.json(users)
 })
 
 module.exports = usersRouter
