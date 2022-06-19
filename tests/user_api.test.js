@@ -1,9 +1,12 @@
 const bcrypt = require('bcrypt')
 const User = require('../models/user')
+const mongoose = require('mongoose')
 const helper = require('../utils/test_helper')
 const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
+
+const autorization = 'bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWQiOiI2MmFlNDQwNDM0ODVjMTkxMjhiNGFkMzEiLCJpYXQiOjE2NTU2NDI4MTR9.smQH_rqJPO-CdBML8tM-rwQB4AO6EW_EneIjzX97Y3Y'
 
 describe('There is atleast one user in db', () => {
   beforeEach(async () => {
@@ -26,6 +29,7 @@ describe('There is atleast one user in db', () => {
 
     await api
       .post('/api/users')
+      .set({ 'Autorization': autorization, Accept: 'application/json' })
       .send(newUser)
       .expect(201)
       .expect('Content-Type', /aapplication\/json/)
@@ -44,6 +48,7 @@ describe('There is atleast one user in db', () => {
     }
     const result = await api
       .post('/api/users')
+      .set({ 'Autorization': autorization, Accept: 'application/json' })
       .send(newUser)
       .expect(400)
       .expect('Content-Type', /application\/json/)
@@ -65,6 +70,7 @@ describe('There is atleast one user in db', () => {
 
     await api
       .post('/api/users')
+      .set({ 'Autorization': autorization, Accept: 'application/json' })
       .send(newUser)
       .expect(400)
       .expect('Content-Type', /aapplication\/json/)
@@ -84,6 +90,7 @@ describe('There is atleast one user in db', () => {
 
     await api
       .post('/api/users')
+      .set({ 'Autorization': autorization, Accept: 'application/json' })
       .send(newUser)
       .expect(400)
       .expect('Content-Type', /aapplication\/json/)
@@ -103,6 +110,7 @@ describe('There is atleast one user in db', () => {
 
     await api
       .post('/api/users')
+      .set({ 'Autorization': autorization, Accept: 'application/json' })
       .send(newUser)
       .expect(400)
       .expect('Content-Type', /aapplication\/json/)
@@ -122,6 +130,7 @@ describe('There is atleast one user in db', () => {
 
     await api
       .post('/api/users')
+      .set({ 'Autorization': autorization, Accept: 'application/json' })
       .send(newUser)
       .expect(400)
       .expect('Content-Type', /aapplication\/json/)
@@ -141,6 +150,7 @@ describe('There is atleast one user in db', () => {
 
     await api
       .post('/api/users')
+      .set({ 'Autorization': autorization, Accept: 'application/json' })
       .send(newUser)
       .expect(400)
       .expect('Content-Type', /aapplication\/json/)
@@ -159,6 +169,7 @@ describe('There is atleast one user in db', () => {
 
     await api
       .post('/api/users')
+      .set({ 'Autorization': autorization, Accept: 'application/json' })
       .send(newUser)
       .expect(201)
       .expect('Content-Type', /aapplication\/json/)
@@ -177,6 +188,7 @@ describe('There is atleast one user in db', () => {
 
     await api
       .post('/api/users')
+      .set({ 'Autorization': autorization, Accept: 'application/json' })
       .send(newUser)
       .expect(400)
       .expect('Content-Type', /aapplication\/json/)
@@ -184,4 +196,8 @@ describe('There is atleast one user in db', () => {
     const usersAtEnd = await helper.usersInDb()
     expect(usersAtEnd).toHaveLength(userAtStart.length)
   })
+})
+
+afterAll(() => {
+  mongoose.connection.close()
 })

@@ -5,6 +5,9 @@ const app = require('../app')
 const api = supertest(app)
 const Blog = require('../models/blog')
 
+const autorization = 'bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWQiOiI2MmFlNDQwNDM0ODVjMTkxMjhiNGFkMzEiLCJpYXQiOjE2NTU2NDI4MTR9.smQH_rqJPO-CdBML8tM-rwQB4AO6EW_EneIjzX97Y3Y'
+
+
 beforeEach(async () => {
   await Blog.deleteMany({})
 
@@ -17,6 +20,7 @@ beforeEach(async () => {
 test('blogs are returned as json', async () => {
   await api
     .get('/api/blogs')
+    .set({ 'Autorization': autorization, Accept: 'application/json' })
     .expect(200)
     .expect('Content-Type', /application\/json/)
 })
@@ -56,6 +60,7 @@ test('a valid blog can be added', async () => {
 
   await api
     .post('/api/blogs')
+    .set({ 'Autorization': autorization, Accept: 'application/json' })
     .send(helper.oneBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -76,6 +81,7 @@ test('blog without title or url is not added', async () => {
 
   await api
     .post('/api/blogs')
+    .set({ 'Autorization': autorization, Accept: 'application/json' })
     .send(faultyBlog)
     .expect(400)
 
@@ -87,6 +93,7 @@ test('blog without title or url is not added', async () => {
 
   await api
     .post('/api/blogs')
+    .set({ 'Autorization': autorization, Accept: 'application/json' })
     .send(faultyBlog2)
     .expect(400)
 
@@ -98,6 +105,7 @@ test('blog without title or url is not added', async () => {
 
   await api
     .post('/api/blogs')
+    .set({ 'Autorization': autorization, Accept: 'application/json' })
     .send(faultyBlog3)
     .expect(400)
 
@@ -115,6 +123,7 @@ test('a blog without likes will default the likes to 0', async () => {
 
   await api
     .post('/api/blogs')
+    .set({ 'Autorization': autorization, Accept: 'application/json' })
     .send(oneBlog)
     .expect(201)
 
@@ -130,6 +139,7 @@ test('a blog without likes will default the likes to 0', async () => {
 
   await api
     .post('/api/blogs')
+    .set({ 'Autorization': autorization, Accept: 'application/json' })
     .send(oneBlog2)
     .expect(201)
 
@@ -145,6 +155,7 @@ test('a blog can be deleted', async () => {
 
   await api
     .delete(`/api/blogs/${blogToDelete.id}`)
+    .set({ 'Autorization': autorization, Accept: 'application/json' })
     .send()
     .expect(204)
 
@@ -164,6 +175,7 @@ test('updates a blog successfully', async () => {
 
   await api
     .put(`/api/blogs/${blogToEdit.id}`)
+    .set({ 'Autorization': autorization, Accept: 'application/json' })
     .send(edit)
     .expect(200)
 
