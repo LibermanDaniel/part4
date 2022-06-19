@@ -7,11 +7,23 @@ require('express-async-errors')
 usersRouter.post('/', async (req, res) => {
   const { username, name, password } = req.body
 
-  console.log(username)
-  console.log(name)
-  console.log(password)
+  if (!(username) || !(password)) {
+    return res.status(400).json({
+      error: 'Either username or password field is empty'
+    })
+  }
   const existingUser = await User.findOne({ username })
   if (existingUser) {
+    return res.status(400).json({
+      error: 'username must be unique'
+    })
+  }
+  if (!validateUsername(username)) {
+    return res.status(400).json({
+      error: 'username must be unique'
+    })
+  }
+  if (!validatePassword(password)) {
     return res.status(400).json({
       error: 'username must be unique'
     })
@@ -36,5 +48,30 @@ usersRouter.get('/', async (req, res) => {
   console.log(users)
   res.json(users)
 })
+
+// validators
+
+/**
+ * Password must have one upper/lower -case letters, one digit, and one special character
+ * Passwords must have length of 3 to 12 characters
+ * @param {string} password password provided by the user
+ * @returns true of false depends on if the password matches the regex requierments
+ */
+const validatePassword = (password) => {
+  const passRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{3,12}$/
+  return passRegex.match(password)
+}
+
+/**
+ * Username can contain Upper and lower case letters, digits, underscore, and periods
+ * Username must have length of 3 to 20 characters
+ * @param {string} username username provided by the user
+ * @returns true of false depends on if the password matches the regex requierments
+ */
+const validateUsername = (username) => {
+  const usernameRegex = /^[a-z0-9_\.]+.{3,20}$/
+  return usernameRegex.match(username)
+}
+
 
 module.exports = usersRouter
