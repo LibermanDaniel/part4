@@ -20,12 +20,12 @@ usersRouter.post('/', async (req, res) => {
   }
   if (!validateUsername(username)) {
     return res.status(400).json({
-      error: 'username must be unique'
+      error: 'username must have over 3 characters'
     })
   }
   if (!validatePassword(password)) {
     return res.status(400).json({
-      error: 'username must be unique'
+      error: 'password must have over 3 characters, one uppercase, one lowercase, one digit, one special character!'
     })
   }
 
@@ -59,7 +59,7 @@ usersRouter.get('/', async (req, res) => {
  */
 const validatePassword = (password) => {
   const passRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{3,12}$/
-  return passRegex.match(password)
+  return passRegex.test(password)
 }
 
 /**
@@ -70,7 +70,7 @@ const validatePassword = (password) => {
  */
 const validateUsername = (username) => {
   const usernameRegex = /^[a-z0-9_\.]+.{3,20}$/
-  return usernameRegex.match(username)
+  return usernameRegex.test(username)
 }
 
 
