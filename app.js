@@ -23,6 +23,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.static('build'))
 app.use(middleware.requestLogger)
 app.use(middleware.tokenExtractor)
+app.use(middleware.userExtractor)
 
 app.use('/api/blogs', blogsRouter)
 app.use('/api/users', userRouter)
